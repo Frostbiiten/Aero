@@ -1,14 +1,7 @@
+# Pygame
+import os
 import pygame
 import pygame.freetype
-import particles
-import button as pushbutton
-from vector_util import vector2
-
-WINDOW_RESOLUTION = [600, 800]
-FPS = 60
-
-window = pygame.display.set_mode(WINDOW_RESOLUTION, pygame.NOFRAME)
-
 from pygame.locals import (
     K_UP,
     K_DOWN,
@@ -21,27 +14,52 @@ from pygame.locals import (
     QUIT,
 )
 
+from easing_functions import *
+
+# Own files
+from button import button
+from fade import fader
+from vector_util import lerp, vector2
+import main_menu
+
+# Globals
+FPS = 60
+WINDOW_RESOLUTION = [600, 800]
+window = pygame.display.set_mode(WINDOW_RESOLUTION, pygame.NOFRAME)
+
+# Create fader with black screen, fades out
+fade = fader(window, 1)
+fade.visible = False
+
 def terminate():
+    # bring window into scope
+    global window
+
+    # Slowly shrink window
+    alpha = 0
+    easing = ExponentialEaseInOut(start=1, end=0, duration = 1)
+    while alpha < 1:
+        current_size = vector2(WINDOW_RESOLUTION[0], WINDOW_RESOLUTION[1] * easing.ease(alpha))
+        window = pygame.display.set_mode([int(current_size.x), int(current_size.y)], pygame.NOFRAME)
+        alpha += 0.005
+
+    # Close application when window is done shrinking
     pygame.quit()
 
 def mainloop():
+    # Bring window into scope
     global window
     quit = False
+
+    # Start delta time clock
     delta_time_clock = pygame.time.Clock()
 
-    # b = button.button(window, terminate, pygame.font.Font("assets/fonts/default_font.ttf", 32))
-    # x = button.button(surface=window, command=terminate, font=pygame.font.Font("assets/fonts/default_font.ttf", 32), text="", text_color=(10, 10, 10),
-    # position=vector2(-20, 20), anchor=vector2(1, 0), dimensions=vector2(30, 30), rounding=2, normal_color=[220, 220, 200],
-    # hover_color=[255, 10, 10])
+    # Create x buttn
+    x_button = button(surface=window, command=terminate, image=pygame.image.load("assets/images/cross.png"), normal_color=[50, 50, 50], hover_color=[225, 30, 30],
+    anchor=vector2(1, 0), dimensions=vector2(22, 22), position=vector2(-15, 15), rounding=1)
 
-    buttons = []
-    steps = 10
-
-    for x in range(0, steps):
-        for y in range(0, steps):
-            b = pushbutton.button(surface=window, command=terminate,font=pygame.font.Font("assets/fonts/default_font.ttf", 32), text=str(y * steps + x), image=pygame.image.load("assets/images/cross.png"), rounding=0, hover_scalar=1.1, hover_color=(255, 0, 0),
-            position=vector2(WINDOW_RESOLUTION[0] / steps / 2, WINDOW_RESOLUTION[1] / steps / 2), anchor=vector2(x / steps, y / steps), dimensions=vector2(WINDOW_RESOLUTION[0] / steps, WINDOW_RESOLUTION[1] / steps))
-            buttons.append(b)
+    # Load main menu
+    main_menu.load(surface=window)
 
     while quit == False:
         # Get time since last frame for deltatime
@@ -71,16 +89,15 @@ def mainloop():
 
         mouse_pos = pygame.mouse.get_pos()
 
-        '''
-        b.update(mouse_pos, mouse_button_down)
-        b.draw()
+        main_menu.update(mouse_pos, mouse_button_up, delta_time)
+        main_menu.draw()
 
-        x.update(mouse_pos, mouse_button_down)
-        x.draw()
-        '''
-        for button in buttons:
-            button.update(mouse_pos, mouse_button_down)
-            button.draw()
+        x_button.update(mouse_pos, mouse_button_up)
+        x_button.draw()
+
+        # Draw fader last to cover everything
+        fade.update(delta_time)
+        fade.draw(window)
 
         # Display screen
         pygame.display.flip()

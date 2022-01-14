@@ -31,4 +31,4 @@ class vector2:
 
 # Linearly interpolated between a and b at time t (0-1)
 def lerp(a, b, t):
-    return a + t * (b - a)
+    return a + (b - a) * t
