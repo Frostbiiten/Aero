@@ -1,18 +1,30 @@
+from cgitb import small
+from turtle import width
 import pygame
 import pygame.freetype
 import math_util as mathu
 import vector_util as vecu
 
 class button():
-    def __init__(self, surface, command, font, text = "Button", text_color = (10, 10, 10),
+    def __init__(self, surface, command, font=None, text = "", image = None, text_color = (10, 10, 10),
                 position=vecu.vector2(0, 0), anchor=vecu.vector2(0.5, 0.5), dimensions=vecu.vector2(200, 200), 
                 rounding = 10, normal_color=[220, 220, 220], hover_color=[250, 250, 250], pressed_color=[200, 200, 200],
                 hover_scalar = 1.1):
 
-        # Set button text
-        self.text = text
-        self.text_color = text_color
-        self.font = font
+        if len(text) > 0:
+            # Set button text
+            self.text = text
+            self.text_color = text_color
+            self.font = font
+            self.has_text = True
+        else:
+            self.has_text = False
+        
+        if image is None:
+            self.has_image = False
+        else:
+            self.image = image
+            self.has_image = True
 
         # Set up anchor, position and dimensions
         self.anchor = anchor
@@ -71,6 +83,13 @@ class button():
 
     def draw(self):
         pygame.draw.rect(self.surface, self.current_color, self.rect, border_radius=self.rounding)
-        text_surface = self.font.render(self.text, True, self.text_color)
-        text_size = text_surface.get_size()
-        self.surface.blit(text_surface, (self.rect.center[0] - text_size[0] / 2, self.rect.center[1] - text_size[1] / 2))
+        if self.has_image:
+            smaller_dimension = self.rect.height if self.rect.height < self.rect. width else self.rect.width
+            scaled_image = pygame.transform.scale(self.image, (smaller_dimension, smaller_dimension))
+            image_rect = scaled_image.get_rect()
+            image_rect.center = self.rect.center
+            self.surface.blit(scaled_image, image_rect)
+        if self.has_text:
+            text_surface = self.font.render(self.text, True, self.text_color)
+            text_size = text_surface.get_size()
+            self.surface.blit(text_surface, (self.rect.center[0] - text_size[0] / 2, self.rect.center[1] - text_size[1] / 2))
