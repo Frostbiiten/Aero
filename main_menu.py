@@ -1,26 +1,12 @@
-from button import button
-from enum import Enum
-from fade import fader
 import pygame
+from GUI import Text, Button
+from math_util import Vector2
 
-from vector_util import vector2
+return_value = None
 
-buttons = []
-window = None
-pygame.font.init()
-title_font = pygame.font.Font("assets/fonts/black_font.ttf", 150)
-sub_title_font = pygame.font.Font("assets/fonts/bold_font.ttf", 30)
-
-class colors (Enum):
-    IRIS = [69, 74, 222]
-    SPACE_CADET = [27, 31, 59]
-    ELECTRIC_PURPLE = [177, 74, 237]
-    FRENCH_MAUVE = [200, 116, 217]
-    CAMEO_PINK = [225, 187, 201]
-
-# Button functions
 def play():
-    pass
+    global return_value
+    return_value = "play"
 
 def settings():
     pass
@@ -28,54 +14,79 @@ def settings():
 def shop():
     pass
 
+# Function called to load the main menu
 def load(surface):
-    global buttons
     global window
+    global title_text
+    global subtitle_text
+    global buttons
+    global return_value
+
     window = surface
 
-    # Reset buttons
-    buttons = []
+    title_text = Text(window, text="Aero", size=150, color=(255, 255, 255), position=Vector2(0,-90))
+    subtitle_text = Text(window, text="A Flying Game", color=(255, 255, 255))
 
-    play_button = button(surface=surface, command=play, image=pygame.image.load("assets/images/right.png"),
-        anchor=vector2(0.5, 1), dimensions=vector2(190, 100), position=vector2(0, -50),
-        normal_color=colors.SPACE_CADET.value,hover_color=colors.IRIS.value, pressed_color=colors.SPACE_CADET.value, rounding=2)
+    # Create play button
+    play_button = Button(
+        surface=surface,
+        command=play,
+        anchor=Vector2(0.5, 1),
+        position=Vector2(0, -110),
+        normal_color=(46, 45, 77),
+        hover_color=(68, 85, 208),
+        image=pygame.image.load("assets/images/right.png")
+        )
 
-    settings_button = button(surface=surface, command=settings, image=pygame.image.load("assets/images/gear.png"),
-        anchor=vector2(1, 1), dimensions=vector2(190, 100), position=vector2(-100, -50),
-        normal_color=colors.SPACE_CADET.value,hover_color=colors.IRIS.value, pressed_color=colors.SPACE_CADET.value, rounding=2)
+    # Create setttings button
+    settings_button = Button(
+        surface=surface,
+        command=settings,
+        anchor=Vector2(0.5, 1),
+        position=Vector2(197, -110),
+        normal_color=(46, 45, 77),
+        hover_color=(68, 85, 208),
+        image=pygame.image.load("assets/images/gear.png")
+        )
 
-    store_button = button(surface=surface, command=shop, image=pygame.image.load("assets/images/shoppingCart.png"),
-        anchor=vector2(0, 1), dimensions=vector2(190, 100), position=vector2(100, -50),
-        normal_color=colors.SPACE_CADET.value,hover_color=colors.IRIS.value, pressed_color=colors.SPACE_CADET.value, rounding=2)
+    # Create setttings button
+    shop_button = Button(
+        surface=surface,
+        command=shop,
+        anchor=Vector2(0.5, 1),
+        position=Vector2(-197, -110),
+        normal_color=(46, 45, 77),
+        hover_color=(68, 85, 208),
+        image=pygame.image.load("assets/images/shop.png")
+        )
 
-    # Set buttons
-    buttons = [play_button, settings_button, store_button]
+    # Create button list with only play buttoon
+    buttons = [play_button, settings_button, shop_button]
 
-    fade = fader(window, 1)
-    fade.visible = False
+    # Reset return value
+    return_value = None
 
-def update(mouse_pos, mouse_pressing, dt):
+# Function called every frame
+def update(mouse_position, mouse_pressing):
+    global return_value
+
     for button in buttons:
-        button.update(mouse_pos, mouse_pressing)
-    
+        button.update(mouse_position, mouse_pressing)
+
+    # Return the return value every frame
+    return return_value
+
+# Function for displaying the main menu
 def draw():
+    global title_text
+    global subtitle_text
     global window
-    global title_font
 
-    # Clear window
-    window.fill([channel / 2 for channel in colors.SPACE_CADET.value])
+    # Clear window - draw background
+    window.fill((23, 22, 38))
 
-    # Render title font
-    title_surface = title_font.render("AERO", True, colors.CAMEO_PINK.value)
-    title_size = title_surface.get_size()
-    window_rect = window.get_rect()
-    window.blit(
-        title_surface, (window_rect.center[0] - title_size[0] / 2, window_rect.center[1] - title_size[1] / 2 - 150))
-    
-    sub_title_surface = sub_title_font.render("A Game About Flight", True, colors.FRENCH_MAUVE.value)
-    sub_title_size = sub_title_surface.get_size()
-    window.blit(
-        sub_title_surface, (window_rect.center[0] - sub_title_size[0] / 2, window_rect.center[1] - sub_title_size[1] / 2 - 60))
+    title_text.draw()
+    subtitle_text.draw()
 
     for button in buttons:
         button.draw()
